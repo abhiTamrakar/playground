@@ -97,7 +97,7 @@ cat<<_EOF_
 	#  --------
 	#  7 | 8 | 9
 
-	Score: 6 points will be awarded each time a player wins.
+	Score: 1 points will be awarded each time a player wins.
 
 	NOTE: playing with computer is still to write
 
@@ -121,33 +121,34 @@ cat <<_EOF_
 _EOF_
 }
 
-is_winner()
+get_winner()
 {
-    local c="$1"
-    local u=$2
-
-    len=${#c}
-    if [ $len -eq 5 ]; then
-      n=3
-    else
-      n=2
+  local i=$1	# user
+  local c=0	# wining occurences
+  
+    if [[ "${b[1]}" = "${!i}" ]] && [[ ${b[2]} = "${!i}" ]] && [[ ${b[3]} = "${!i}" ]]; then
+      ((c+=1))  
+    elif [[ "${b[1]}" = "${!i}" ]] && [[ ${b[4]} = "${!i}" ]] && [[ ${b[7]} = "${!i}" ]]; then
+      ((c+=1))  
+    elif [[ "${b[1]}" = "${!i}" ]] && [[ ${b[5]} = "${!i}" ]] && [[ ${b[9]} = "${!i}" ]]; then
+      ((c+=1))  
+    elif [[ "${b[2]}" = "${!i}" ]] && [[ ${b[5]} = "${!i}" ]] && [[ ${b[8]} = "${!i}" ]]; then
+      ((c+=1))  
+    elif [[ "${b[3]}" = "${!i}" ]] && [[ ${b[6]} = "${!i}" ]] && [[ ${b[9]} = "${!i}" ]]; then
+      ((c+=1))  
+    elif [[ "${b[3]}" = "${!i}" ]] && [[ ${b[5]} = "${!i}" ]] && [[ ${b[7]} = "${!i}" ]]; then
+      ((c+=1))  
+    elif [[ "${b[4]}" = "${!i}" ]] && [[ ${b[5]} = "${!i}" ]] && [[ ${b[6]} = "${!i}" ]]; then
+      ((c+=1))  
+    elif [[ "${b[7]}" = "${!i}" ]] && [[ ${b[8]} = "${!i}" ]] && [[ ${b[9]} = "${!i}" ]]; then
+      ((c+=1))  
     fi
-    for combination in $(eval echo {$c}{$c}{$c}); do
-      if [ ${#combination} -eq 3 ]; then
-        for match in ${winsets[@]}; do
-          if [ $match -eq $combination ]; then
-             if [ "$u" = "p1" ]; then
-               ((w1+=1))
-             else
-               ((w2+=1))
-             fi
-	     break
-          fi
-        done
-      else
-        break
-      fi
-    done
+
+  if [[ "$i" = 'p1' ]]; then
+    w1=$c
+  else
+    w2=$c
+  fi
 
 cat<<_EOF_
 
@@ -202,22 +203,10 @@ count=0
         if [ x${b[$spot]} = x ]; then
   	  if [ "$player" = "$p1" ]; then
             b[$spot]=${p1}
-	    if [[ x"$c1" = x ]]; then
-	      c1="$spot"
-	    else
-	      c1="${c1} $spot"
-	    fi
-            w1=0
-            is_winner "${c1// /,}" p1
+            get_winner p1
 	  else
             b[$spot]=$p2
-	    if [[ x"$c2" = x ]]; then
-  	      c2="$spot"
-	    else
-	      c2="${c2} $spot"
-	    fi
-            w2=0
-            is_winner "${c2// /,}" p2
+            get_winner p2
 	  fi
           break
         else
