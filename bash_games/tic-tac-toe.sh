@@ -25,10 +25,10 @@
 #  7 | 8 | 9
 
 set=0
-metrics="1 2 3 4 5 6 7 8 9 "
-spots=$metrics
+metrics="1 2 3 4 5 6 7 8 9"
+declare -a spots
 declare -a users=(p1 p2)
-declare -a b=(' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ')
+declare -a b=(. . . . . . . . . .)
 declare -a ids=(o x)
 
 usage()
@@ -77,6 +77,17 @@ cat <<_EOF_
 _EOF_
 }
 
+get_empty_sets()
+{
+ spots=""
+ for i in {1..9}; do
+   if [[ ${b[$i]} = "." ]]; then
+     spots="$spots $i"
+   fi
+   spots=${spots/ /}
+ done
+}
+
 get_winner()
 {
   local i=$1	# user
@@ -121,8 +132,8 @@ _EOF_
 register_player()
 {
 local yn
-read -p "info: want to play with computer? yn: " yn
 while true; do
+  read -p "info: want to play with computer? yn: " yn
   case $yn in
   [Yy] ) r=$(shuf -i 0-1 -n 1)
          player=${users[$r]}
@@ -139,6 +150,7 @@ while true; do
   [Nn] ) player=p1
          read -p "info: enter player ID for p1 [${ids[0]}/${ids[1]}]: " p1
          break;;
+   * )   echo -e "warning: invalid choice.";;
   esac
 done
 
@@ -168,12 +180,14 @@ done
 play()
 {
   ((set+=1))
-  for i in $(seq 1 5); do
+ get_empty_sets
+  while [ ${#spots} -gt 1 ]; do
     for player in ${users[@]}; do
-      if [[ $computer -ne 1 ]] && [[ x${metrics} != x ]]; then
+      if [[ $computer -ne 1 ]] && [[ ${#spots} -gt 1 ]]; then
+        get_empty_sets
         while true; do
-	read -p "[${player}](${!player}) choose your spot [${metrics}]: " spot
-        if [ x${b[$spot]} = x ]; then
+	read -p "[${player}](${!player}) choose your spot [${spots}]: " spot
+        if [ "${b[$spot]}" = '.' ]; then
   	  if [ "$player" = "p1" ]; then
             b[$spot]=${p1}
             get_winner p1
@@ -186,7 +200,6 @@ play()
           echo -e "warning: that spot is already taken!!"
         fi
         done
-        metrics="${metrics/$spot /}"
         board
       elif [[ ${computer:-0} -eq 1 ]]; then
 	#TODO: AI algorithm for computer to choose.
@@ -215,8 +228,7 @@ play
 while true; do
   read -p 'info: do you want to play again? [y/n] ' yn
   case $yn in
-    [Yy]) metrics=$spots
-          b=(' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ')
+    [Yy]) b=(. . . . . . . . . .)
           c1=${w1:-0}
           c2=${w2:-0}
           play;;
