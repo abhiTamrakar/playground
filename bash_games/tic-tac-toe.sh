@@ -24,71 +24,22 @@
 #  --------
 #  7 | 8 | 9
 
-set=1
-w1=0
-w2=0
+set=0
 metrics="1 2 3 4 5 6 7 8 9 "
 spots=$metrics
+declare -a users=(p1 p2)
 declare -a b=(' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ')
-declare -a p1
-declare -a p2
 declare -a ids=(o x)
-declare -a winsets=(123
-456
-789
-147
-258
-369
-396
-963
-936
-639
-693
-852
-582
-528
-285
-825
-741
-714
-417
-471
-174
-159
-195
-519
-591
-951
-915
-753
-735
-537
-573
-357
-375
-321
-312
-213
-231
-132
-465
-546
-564
-645
-654
-798
-879
-897
-987
-978)
 
 usage()
 {
 cat<<_EOF_
 
 	This game is designed for fun and to show, what shell, itself, is capable of.
-	The game has simple rules, Do not cheat. You can choose your own mark apart-
-	the one provided as defaults. The board design with spots is below:
+	The game has simple rules:
+        * Do not cheat. 
+        * You cannot choose your own mark apart from the one provided as defaults.
+        The board design with spots is below:
 
 	# board design
 	#  1 | 2 | 3
@@ -103,6 +54,11 @@ cat<<_EOF_
 
 
 _EOF_
+}
+time_to_exit()
+{
+  echo -e "\n\nerror: it seems you have pressed ctrl+c. exiting now.\n"
+  exit 1
 }
 
 board()
@@ -124,8 +80,8 @@ _EOF_
 get_winner()
 {
   local i=$1	# user
-  local c=0	# wining occurences
-  
+  local c=0	# wining occurences    
+
     if [[ "${b[1]}" = "${!i}" ]] && [[ ${b[2]} = "${!i}" ]] && [[ ${b[3]} = "${!i}" ]]; then
       ((c+=1))  
     elif [[ "${b[1]}" = "${!i}" ]] && [[ ${b[4]} = "${!i}" ]] && [[ ${b[7]} = "${!i}" ]]; then
@@ -145,9 +101,9 @@ get_winner()
     fi
 
   if [[ "$i" = 'p1' ]]; then
-    w1=$c
+      w1=$((c1 + c))
   else
-    w2=$c
+      w2=$((c2 + c))
   fi
 
 cat<<_EOF_
@@ -156,7 +112,7 @@ cat<<_EOF_
      ---------
      | P1| P2|
      ---------
-     |  $w1|  $w2|
+     |  ${w1:-0}|  ${w2:-0}|
      ---------
 
 _EOF_
@@ -164,44 +120,61 @@ _EOF_
 
 register_player()
 {
-  read -p "info: number of players? [2 max]: " n
-  if [ $n -eq 2 ]; then
-    for user in p1 p2; do
-      read -p "info: enter player ID for $user [${ids[0]}/${ids[1]}]: " $user
-      if [[ x${!user} = x ]] || [[ "$p1" = "$p2" ]]; then
-	echo -e "error: player ID cannot be empty or identical!!"
-	exit 1
-      else
-        ids=(${ids[@]/${!user}/})
-      fi
-    done
-  elif [ $n -gt 2 ]; then
-    echo -e "error: number of players cannot exceed 2!!"
-    exit 1
-  else
-    read -p "info: enter player ID for p1: " p1
-    p2=computer
-  fi
+local yn
+read -p "info: want to play with computer? yn: " yn
+while true; do
+  case $yn in
+  [Yy] ) r=$(shuf -i 0-1 -n 1)
+         player=${users[$r]}
+         if [ "$player" = 'p1' ]; then
+           echo -e "info: p1 will choose first."
+           read -p "info: enter player ID for p1 [${ids[0]}/${ids[1]}]: " p1
+         else
+           echo -e "info: computer[p2] will choose first: \c"
+           c=$(shuf -i 0-1 -n 1); p2=${ids[$c]}
+           echo -n "$p2"
+         fi
+         computer=1
+         break;;
+  [Nn] ) player=p1
+         read -p "info: enter player ID for p1 [${ids[0]}/${ids[1]}]: " p1
+         break;;
+  esac
+done
 
-# declare users array
-  users=($p1 $p2)
-  if [ ${#users[@]} -eq 2 ]; then
-    printf '%s, ' "users ${users[@]}"
-    printf ': %s\n' "have joined the game"
-  fi
+    if [[ "$player" == "p1" ]]; then
+      if [[ -z "$p1" ]] || [[ "$p1" != "x" ]] && [[ "$p1" != "o" ]]; then
+        echo -e "error: player ID cannot be empty or other than o/x!!"
+        exit 1
+      elif [[ "$p1" = 'o' ]]; then
+        p2=x
+      elif [[ "$p1" = 'x' ]]; then
+        p2=o
+      fi
+    else
+      if [[ -z $p2 ]] || [[ "$p2" != "x" ]] && [[ "$p2" != "o" ]]; then
+        echo -e "error: player ID cannot be empty or other than o/x!!"
+        exit 1
+      elif [[ "$p2" = 'o' ]]; then
+        p1=x
+      elif [[ "$p2" = 'x' ]]; then
+        p1=o
+      fi
+    fi
+
+    printf '\n%s\n%s\n' "info: p1 has chosen $p1" "info: p2 has chosen $p2"
 }
 
 play()
 {
-count=0
+  ((set+=1))
   for i in $(seq 1 5); do
     for player in ${users[@]}; do
-      ((count+=1))
-      if [[ "$player" != "computer" ]] && [[ x${metrics} != x ]]; then
+      if [[ $computer -ne 1 ]] && [[ x${metrics} != x ]]; then
         while true; do
-	read -p "[${player}] choose your spot [${metrics}]: " spot
+	read -p "[${player}](${!player}) choose your spot [${metrics}]: " spot
         if [ x${b[$spot]} = x ]; then
-  	  if [ "$player" = "$p1" ]; then
+  	  if [ "$player" = "p1" ]; then
             b[$spot]=${p1}
             get_winner p1
 	  else
@@ -215,16 +188,39 @@ count=0
         done
         metrics="${metrics/$spot /}"
         board
-      elif [[ "$p2" = "computer" ]]; then
- 				#TODO: AI algorithm for computer to choose.
-        echo -e "info: this part is TODO, you can still enjoy the game with your friend!!"
-				exit 1
+      elif [[ ${computer:-0} -eq 1 ]]; then
+	#TODO: AI algorithm for computer to choose.
+        echo -e "SORRY: this part is TODO, you can still enjoy the game with your friend!!"
+	exit 1
       fi
     done
   done
+
+if [[ ${w1:-0} -eq ${w2:-0} ]]; then
+  echo -e "\ninfo: ****The game is a tie.****\n"
+elif [[ ${w1} -gt ${w2} ]]; then
+  echo -e "\ninfo: ****player p1 has beaten p2 by [${w1:-0}-${w2:-0}] in total $set sets.****\n"
+else
+  echo -e "\ninfo: ****player p2 has beaten p1 by [${w1:-0}-${w2:-0}] in total $set sets..****\n"
+fi
 }
+
 ### main ###
+trap time_to_exit INT
 
 usage
 register_player
 play
+
+while true; do
+  read -p 'info: do you want to play again? [y/n] ' yn
+  case $yn in
+    [Yy]) metrics=$spots
+          b=(' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ')
+          c1=${w1:-0}
+          c2=${w2:-0}
+          play;;
+    [Nn]) echo -e "info: exiting the game."
+          exit 0;;
+  esac 
+done
