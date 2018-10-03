@@ -50,11 +50,11 @@ cat<<_EOF_
 
 	Score: 1 points will be awarded each time a player wins.
 
-	NOTE: playing with computer is still to write
 
 
 _EOF_
 }
+
 time_to_exit()
 {
   echo -e "\n\nerror: it seems you have pressed ctrl+c. exiting now.\n"
@@ -97,6 +97,7 @@ is_spot_free()
   fi
 }
 
+# simple AI to guess if either party can win.
 can_win()
 {
   local w=$1
@@ -121,6 +122,7 @@ can_win()
   done
 }
 
+# get empty spots on board
 get_empty_sets()
 {
  spots=""
@@ -133,6 +135,7 @@ get_empty_sets()
      spots=${spots/ /}
 }
 
+# simple logic to get winner
 get_winner()
 {
   local i=$1	# user
@@ -248,18 +251,18 @@ play()
           if [ ${#nspots} -lt 1 ]; then
             break
           fi
-          read -p "[${player}](${!player}) choose your spot [${nspots}]: " spot
-          if [[ "${b[$spot]}" = '.' ]] && [[ ! -z $spot ]] && [[ ! $spot -gt 9 ]]; then
-            if [ "$player" = "p1" ]; then
-              b[$spot]=${p1}
-              get_winner p1
+          while true; do
+            read -p "[${player}](${!player}) choose your spot [${nspots}]: " spot
+            if [[ "${b[$spot]}" = '.' ]] && [[ ! -z $spot ]] && [[ ! $spot -gt 9 ]] && [[ ! "$spot" =~ [a-z] ]]; then
+              if [ "$player" = "p1" ]; then
+                b[$spot]=${p1}
+                get_winner p1
+              fi
+              break
             else
-              b[$spot]=$p2
-              get_winner p2
+              echo -e "warning: that spot is already taken or invalid!!"
             fi
-          else
-            echo -e "warning: that spot is already taken or invalid!!"
-          fi
+          done
           board
           u=1;;
       1 ) player=${users[1]}
@@ -268,13 +271,16 @@ play()
             break
           fi
           if [ "${users[1]}" = "p2" ]; then
-            read -p "[${player}](${!player}) choose your spot [${nspots}]: " spot
-            if [[ "${b[$spot]}" = '.' ]] && [[ ! -z $spot ]] && [[ ! $spot -gt 9 ]]; then
-              b[$spot]=$p2
-              get_winner p2
-            else
-              echo -e "warning: that spot is already taken or invalid!!"
-            fi
+            while true; do
+              read -p "[${player}](${!player}) choose your spot [${nspots}]: " spot
+              if [[ "${b[$spot]}" = '.' ]] && [[ ! -z $spot ]] && [[ ! $spot -gt 9 ]] && [[ ! "$spot" =~ [a-z] ]]; then
+                b[$spot]=$p2
+                get_winner p2
+              break
+              else
+                echo -e "warning: that spot is already taken or invalid!!"
+              fi
+            done
             board
           else
             # logic for computer move
