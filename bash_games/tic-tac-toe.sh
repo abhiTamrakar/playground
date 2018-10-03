@@ -24,7 +24,7 @@
 #  --------
 #  7 | 8 | 9
 
-set=0
+sets=0
 metrics="1 2 3 4 5 6 7 8 9"
 declare -a spots
 declare -a users=(p1 p2)
@@ -66,7 +66,7 @@ board()
 cat <<_EOF_
 
 
-   --BOARD-[SET-$set]
+     [SET-$sets]
 ====================
     ${b[1]} | ${b[2]} | ${b[3]}
     ---------
@@ -77,6 +77,50 @@ cat <<_EOF_
 _EOF_
 }
 
+get_my_move()
+{
+# if still not moved, then select random move.
+  if [ $moved -eq 0 ]; then
+    spot=$(shuf -e ${spots} -n 1)
+    is_spot_free $spot
+  fi
+}
+
+is_spot_free()
+{
+  local s=$1
+  if [ "${b[$s]}" = '.' ]; then
+    spot=$1
+    b[$spot]=$c
+    echo -e "info: [c]($c) has chosen it's spot: $spot"
+    ((moved+=1))   
+  fi
+}
+
+can_win()
+{
+  local w=$1
+  local a
+  
+  winsets=(147 123 159 258 369 789 456 357)
+  for a in ${winsets[@]}; do
+#    for w in $c $p1; do
+      one="${a:0:1}"
+      two="${a:1:1}"
+      three="${a:2:1}"
+      if [[ $moved -eq 0 ]]; then
+        if [[ ${b[$one]} = "$w" ]] && [[ ${b[$two]} = "$w" ]]; then
+          is_spot_free $three
+        elif [[ ${b[$one]} = "$w" ]] && [[ ${b[$three]} = "$w" ]]; then
+          is_spot_free $two
+        elif [[ ${b[$two]} = "$w" ]] && [[ ${b[$three]} = "$w" ]]; then
+          is_spot_free $one
+        fi
+      fi
+#    done
+  done
+}
+
 get_empty_sets()
 {
  spots=""
@@ -84,37 +128,38 @@ get_empty_sets()
    if [[ ${b[$i]} = "." ]]; then
      spots="$spots $i"
    fi
-   spots=${spots/ /}
+     nspots=${spots// /}
  done
+     spots=${spots/ /}
 }
 
 get_winner()
 {
   local i=$1	# user
-  local c=0	# wining occurences    
+  local v=0	# wining occurences    
 
     if [[ "${b[1]}" = "${!i}" ]] && [[ ${b[2]} = "${!i}" ]] && [[ ${b[3]} = "${!i}" ]]; then
-      ((c+=1))  
+      ((v+=1))  
     elif [[ "${b[1]}" = "${!i}" ]] && [[ ${b[4]} = "${!i}" ]] && [[ ${b[7]} = "${!i}" ]]; then
-      ((c+=1))  
+      ((v+=1))  
     elif [[ "${b[1]}" = "${!i}" ]] && [[ ${b[5]} = "${!i}" ]] && [[ ${b[9]} = "${!i}" ]]; then
-      ((c+=1))  
+      ((v+=1))  
     elif [[ "${b[2]}" = "${!i}" ]] && [[ ${b[5]} = "${!i}" ]] && [[ ${b[8]} = "${!i}" ]]; then
-      ((c+=1))  
+      ((v+=1))  
     elif [[ "${b[3]}" = "${!i}" ]] && [[ ${b[6]} = "${!i}" ]] && [[ ${b[9]} = "${!i}" ]]; then
-      ((c+=1))  
+      ((v+=1))  
     elif [[ "${b[3]}" = "${!i}" ]] && [[ ${b[5]} = "${!i}" ]] && [[ ${b[7]} = "${!i}" ]]; then
-      ((c+=1))  
+      ((v+=1))  
     elif [[ "${b[4]}" = "${!i}" ]] && [[ ${b[5]} = "${!i}" ]] && [[ ${b[6]} = "${!i}" ]]; then
-      ((c+=1))  
+      ((v+=1))  
     elif [[ "${b[7]}" = "${!i}" ]] && [[ ${b[8]} = "${!i}" ]] && [[ ${b[9]} = "${!i}" ]]; then
-      ((c+=1))  
+      ((v+=1))  
     fi
 
   if [[ "$i" = 'p1' ]]; then
-      w1=$((c1 + c))
+      w1=$((c1 + v))
   else
-      w2=$((c2 + c))
+      w2=$((c2 + v))
   fi
 
 cat<<_EOF_
@@ -136,25 +181,26 @@ while true; do
   read -p "info: want to play with computer? yn: " yn
   case $yn in
   [Yy] ) r=$(shuf -i 0-1 -n 1)
+         users[1]=c
          player=${users[$r]}
          if [ "$player" = 'p1' ]; then
            echo -e "info: p1 will choose first."
            read -p "info: enter player ID for p1 [${ids[0]}/${ids[1]}]: " p1
          else
-           echo -e "info: computer[p2] will choose first: \c"
-           c=$(shuf -i 0-1 -n 1); p2=${ids[$c]}
-           echo -n "$p2"
+           echo -e "info: computer[$player] will choose first: \c"
+           c=$(shuf -i 0-1 -n 1); c=${ids[$c]}
+           echo -n "$c"
          fi
-         computer=1
          break;;
-  [Nn] ) player=p1
-         read -p "info: enter player ID for p1 [${ids[0]}/${ids[1]}]: " p1
+  [Nn] ) r=$(shuf -i 0-1 -n 1)
+         player=${users[$r]}
+         read -p "info: enter player ID for ${player} [${ids[0]}/${ids[1]}]: " ${player}
          break;;
    * )   echo -e "warning: invalid choice.";;
   esac
 done
 
-    if [[ "$player" == "p1" ]]; then
+    if [[ "$player" = "p1" ]] && [[ "${users[1]}" = "p2" ]]; then
       if [[ -z "$p1" ]] || [[ "$p1" != "x" ]] && [[ "$p1" != "o" ]]; then
         echo -e "error: player ID cannot be empty or other than o/x!!"
         exit 1
@@ -163,58 +209,81 @@ done
       elif [[ "$p1" = 'x' ]]; then
         p2=o
       fi
-    else
-      if [[ -z $p2 ]] || [[ "$p2" != "x" ]] && [[ "$p2" != "o" ]]; then
+    elif [[ "$player" = 'c' ]]; then
+      if [[ "$c" = 'o' ]]; then
+        p1=x
+      else
+        p1=o
+      fi
+    elif [[ "${player}" = "p2" ]]; then
+      if [[ -z "$p2" ]] || [[ "$p2" != "x" ]] && [[ "$p2" != "o" ]]; then
         echo -e "error: player ID cannot be empty or other than o/x!!"
         exit 1
       elif [[ "$p2" = 'o' ]]; then
         p1=x
-      elif [[ "$p2" = 'x' ]]; then
+      else
         p1=o
+      fi
+    else
+      if [[ "$p1" = 'o' ]]; then
+        c=x
+      else
+        c=o
       fi
     fi
 
-    printf '\n%s\n%s\n' "info: p1 has chosen $p1" "info: p2 has chosen $p2"
+    printf '\n%s\n%s\n' "info: ${users[0]} has chosen $p1" "info: ${users[1]} has chosen ${p2:-$c}"
 }
 
 play()
 {
-  ((set+=1))
- get_empty_sets
-  while [ ${#spots} -gt 1 ]; do
+  ((sets+=1))
+  get_empty_sets
+  while [ ${#nspots} -ge 1 ]; do
+    moved=0
     for player in ${users[@]}; do
-      if [[ $computer -ne 1 ]] && [[ ${#spots} -gt 1 ]]; then
+      while [ "$player" != 'c' ]; do
+          get_empty_sets
+          if [ ${#nspots} -lt 1 ]; then
+            break
+          fi
+ 	  read -p "[${player}](${!player}) choose your spot [${nspots}]: " spot
+          if [[ "${b[$spot]}" = '.' ]] && [[ ! -z $spot ]] && [[ ! $spot -gt 9 ]]; then
+  	    if [ "$player" = "p1" ]; then
+              b[$spot]=${p1}
+              get_winner p1
+	    else
+              b[$spot]=$p2
+              get_winner p2
+            fi
+            break
+          else
+            echo -e "warning: that spot is already taken or invalid!!"
+          fi
+      done
+      if [ "$player" = 'c' ]; then
+        # logic for computer move
         get_empty_sets
-        while true; do
-	read -p "[${player}](${!player}) choose your spot [${spots}]: " spot
-        if [ "${b[$spot]}" = '.' ]; then
-  	  if [ "$player" = "p1" ]; then
-            b[$spot]=${p1}
-            get_winner p1
-	  else
-            b[$spot]=$p2
-            get_winner p2
-	  fi
-          break
-        else
-          echo -e "warning: that spot is already taken!!"
-        fi
-        done
-        board
-      elif [[ ${computer:-0} -eq 1 ]]; then
-	#TODO: AI algorithm for computer to choose.
-        echo -e "SORRY: this part is TODO, you can still enjoy the game with your friend!!"
-	exit 1
+        can_win $c
+        can_win $p1
+        # is still not moved
+        get_my_move
+        get_winner c
+      elif [ "${users[1]}" = "p2" ]; then
+        board	# print board everytime in a 2 human player game.
       fi
     done
+    if [ "${users[1]}" = "c" ]; then
+      board	# print board only once in a 1 player game.
+    fi
   done
 
 if [[ ${w1:-0} -eq ${w2:-0} ]]; then
   echo -e "\ninfo: ****The game is a tie.****\n"
 elif [[ ${w1} -gt ${w2} ]]; then
-  echo -e "\ninfo: ****player p1 has beaten p2 by [${w1:-0}-${w2:-0}] in total $set sets.****\n"
+  echo -e "\ninfo: ****player 1 has beaten player 2 by [${w1:-0}-${w2:-0}] in total $sets sets.****\n"
 else
-  echo -e "\ninfo: ****player p2 has beaten p1 by [${w1:-0}-${w2:-0}] in total $set sets..****\n"
+  echo -e "\ninfo: ****player 2 has beaten player 1 by [${w1:-0}-${w2:-0}] in total $sets sets..****\n"
 fi
 }
 
