@@ -80,7 +80,7 @@ _EOF_
 get_my_move()
 {
 # if still not moved, then select random move.
-  if [ $moved -eq 0 ]; then
+  if [[ $moved -eq 0 ]]; then
     spot=$(shuf -e ${spots} -n 1)
     is_spot_free $spot
   fi
@@ -237,45 +237,56 @@ done
 
 play()
 {
+  local u=$r
   ((sets+=1))
   get_empty_sets
   while [ ${#nspots} -ge 1 ]; do
     moved=0
-    for player in ${users[@]}; do
-      while [ "$player" != 'c' ]; do
+    case $u in
+      0 ) player=${users[0]}
           get_empty_sets
           if [ ${#nspots} -lt 1 ]; then
             break
           fi
- 	  read -p "[${player}](${!player}) choose your spot [${nspots}]: " spot
+          read -p "[${player}](${!player}) choose your spot [${nspots}]: " spot
           if [[ "${b[$spot]}" = '.' ]] && [[ ! -z $spot ]] && [[ ! $spot -gt 9 ]]; then
-  	    if [ "$player" = "p1" ]; then
+            if [ "$player" = "p1" ]; then
               b[$spot]=${p1}
               get_winner p1
-	    else
+            else
               b[$spot]=$p2
               get_winner p2
             fi
-            break
           else
             echo -e "warning: that spot is already taken or invalid!!"
           fi
-      done
-      if [ "$player" = 'c' ]; then
-        # logic for computer move
-        get_empty_sets
-        can_win $c
-        can_win $p1
-        # is still not moved
-        get_my_move
-        get_winner c
-      elif [ "${users[1]}" = "p2" ]; then
-        board	# print board everytime in a 2 human player game.
-      fi
-    done
-    if [ "${users[1]}" = "c" ]; then
-      board	# print board only once in a 1 player game.
-    fi
+          board
+          u=1;;
+      1 ) player=${users[1]}
+          get_empty_sets
+          if [ ${#nspots} -lt 1 ]; then
+            break
+          fi
+          if [ "${users[1]}" = "p2" ]; then
+            read -p "[${player}](${!player}) choose your spot [${nspots}]: " spot
+            if [[ "${b[$spot]}" = '.' ]] && [[ ! -z $spot ]] && [[ ! $spot -gt 9 ]]; then
+              b[$spot]=$p2
+              get_winner p2
+            else
+              echo -e "warning: that spot is already taken or invalid!!"
+            fi
+            board
+          else
+            # logic for computer move
+            can_win $c
+            can_win $p1
+            # is still not moved
+            get_my_move
+            get_winner c
+            board	# print board only once in a 1 player game.
+          fi
+          u=0;;
+    esac
   done
 
 if [[ ${w1:-0} -eq ${w2:-0} ]]; then
