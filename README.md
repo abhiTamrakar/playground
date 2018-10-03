@@ -4,7 +4,7 @@ programmatic games, just for fun
 In its first release, I chose shell (my fav scripting language), check under bash_games.
 ## tic-tac-toe.sh
 ### A legendary and famous game, it was already available with its AI in python, C# and Java, so I decided to take the challenge on shell. :)
-#### starting the game
+#### starting the game, (an old image, you can play qwith computer now)
 ![alt text](https://github.com/abhiTamrakar/games/blob/master/bash_games/tic-tac-toe-1.PNG "start the game")
 
 #### the random pick
