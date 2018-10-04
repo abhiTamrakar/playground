@@ -152,7 +152,6 @@ trap time_to_quit INT
 
 usage
 plough
-get_empty_fields
 
 while true; do
   read -p "info: enter the coordinates: " opt
