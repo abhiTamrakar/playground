@@ -74,16 +74,6 @@ plough()
   printf '\n\n'
 }
 
-get_empty_fields()
-{
-  emp=0
-  for i in ${!room[@]}; do
-    if [[ "${room[$i]}" = "." ]]; then
-      ((emp+=1)) 
-    fi
-  done
-}
-
 is_free_field()
 {
   local f=$1
@@ -116,14 +106,13 @@ get_mines()
   done
   elif [[ "$n" = "X" ]]; then
     g=0
+    room[$i]=X
     for j in {42..49}; do
       out="gameover"
       k=${out:$g:1}
       room[$j]=${k^^}
       ((g+=1)) 
     done
-  else 
-    is_free_field $i
   fi
 }
 
