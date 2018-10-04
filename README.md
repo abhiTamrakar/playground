@@ -1,10 +1,11 @@
 # games
 programmatic games, just for fun
+## Though the programs still needs a bit cleanup, PRs are welcome for new_games or good modifications to the present ones.
 
 In its first release, I chose shell (my fav scripting language), check under bash_games.
 ## minesweeper.sh
 ### Another legendary game, it was also available in python and C, So again, took it to bash.
-![alt text](https://github.com/abhiTamrakar/games/blob/master/bash_games/minesweeper.PNG "start mining")
+![alt text](https://github.com/abhiTamrakar/games/blob/master/bash_games/minesweeper1.PNG "start mining")
 
 ## tic-tac-toe.sh
 ### A legendary and famous game, it was already available with its AI in python, C# and Java, so I decided to take the challenge on shell. :)
