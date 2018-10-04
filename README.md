@@ -8,3 +8,5 @@ In its first release, I chose shell (my fav scripting language), check under bas
 ## tic-tac-toe.sh
 ### A legendary and famous game, it was already available with its AI in python, C# and Java, so I decided to take the challenge on shell. :)
 
+## minesweeper.sh
+### Another legendary game, it was also available in python and C, So again, took it to bash.
