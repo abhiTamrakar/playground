@@ -24,7 +24,7 @@ menu()
 {
   select opt in *.sh quit; do
     case $opt in
-     q ) exit 0;;
+     quit ) exit 0;;
      *.sh ) if [[ x${xTerm} = x ]]; then
                /bin/bash ${opt}
                wait
