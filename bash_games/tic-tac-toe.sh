@@ -160,8 +160,10 @@ get_winner()
     fi
 
   if [[ "$i" = 'p1' ]]; then
+      v1=$v
       w1=$((c1 + v))
   else
+      v2=$v
       w2=$((c2 + v))
   fi
 
@@ -175,6 +177,14 @@ cat<<_EOF_
      ---------
 
 _EOF_
+
+if [[ ${v1} -gt ${v2} ]]; then
+  echo -e "\ninfo: ****player 1 won by [${w1:-0}-${w2:-0}] in $sets sets.****\n"
+  break 2
+elif [[ ${v1} -lt ${v2} ]]; then
+  echo -e "\ninfo: ****player 2 won by [${w1:-0}-${w2:-0}] in $sets sets..****\n"
+  break 2
+fi
 }
 
 register_player()
@@ -256,7 +266,6 @@ play()
             if [[ "${b[$spot]}" = '.' ]] && [[ ! -z $spot ]] && [[ ! $spot -gt 9 ]] && [[ ! "$spot" =~ [a-z] ]]; then
               if [ "$player" = "p1" ]; then
                 b[$spot]=${p1}
-                get_winner p1
               fi
               break
             else
@@ -264,6 +273,7 @@ play()
             fi
           done
           board
+          get_winner p1
           u=1;;
       1 ) player=${users[1]}
           get_empty_sets
@@ -275,33 +285,25 @@ play()
               read -p "[${player}](${!player}) choose your spot [${nspots}]: " spot
               if [[ "${b[$spot]}" = '.' ]] && [[ ! -z $spot ]] && [[ ! $spot -gt 9 ]] && [[ ! "$spot" =~ [a-z] ]]; then
                 b[$spot]=$p2
-                get_winner p2
               break
               else
                 echo -e "warning: that spot is not allowed!!"
               fi
             done
             board
+            get_winner p2
           else
             # logic for computer move
             can_win $c
             can_win $p1
             # is still not moved
             get_my_move
-            get_winner c
             board	# print board only once in a 1 player game.
+            get_winner c
           fi
           u=0;;
     esac
   done
-
-if [[ ${w1:-0} -eq ${w2:-0} ]]; then
-  echo -e "\ninfo: ****The game is a tie.****\n"
-elif [[ ${w1} -gt ${w2} ]]; then
-  echo -e "\ninfo: ****player 1 won by [${w1:-0}-${w2:-0}] in $sets sets.****\n"
-else
-  echo -e "\ninfo: ****player 2 won by [${w1:-0}-${w2:-0}] in $sets sets..****\n"
-fi
 }
 
 ### main ###
