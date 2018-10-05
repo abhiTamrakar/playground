@@ -57,7 +57,7 @@ _EOF_
 
 time_to_exit()
 {
-  echo -e "\n\nerror: it seems you have pressed ctrl+c. exiting now.\n"
+  echo -e "\n\nerror: you pressed ctrl+c. exiting now.\n"
   exit 1
 }
 
@@ -188,7 +188,7 @@ while true; do
          player=${users[$r]}
          if [ "$player" = 'p1' ]; then
            echo -e "info: p1 will choose first."
-           read -p "info: enter player ID for p1 [${ids[0]}/${ids[1]}]: " p1
+           read -p "info: player ID for p1 [${ids[0]}/${ids[1]}]: " p1
          else
            echo -e "info: computer[$player] will choose first: \c"
            c=$(shuf -i 0-1 -n 1); c=${ids[$c]}
@@ -197,7 +197,7 @@ while true; do
          break;;
   [Nn] ) r=$(shuf -i 0-1 -n 1)
          player=${users[$r]}
-         read -p "info: enter player ID for ${player} [${ids[0]}/${ids[1]}]: " ${player}
+         read -p "info: player ID for ${player} [${ids[0]}/${ids[1]}]: " ${player}
          break;;
    * )   echo -e "warning: invalid choice.";;
   esac
@@ -205,7 +205,7 @@ done
 
     if [[ "$player" = "p1" ]] && [[ "${users[1]}" = "p2" ]]; then
       if [[ -z "$p1" ]] || [[ "$p1" != "x" ]] && [[ "$p1" != "o" ]]; then
-        echo -e "error: player ID cannot be empty or other than o/x!!"
+        echo -e "error: player ID should either be o/x!!"
         exit 1
       elif [[ "$p1" = 'o' ]]; then
         p2=x
@@ -220,7 +220,7 @@ done
       fi
     elif [[ "${player}" = "p2" ]]; then
       if [[ -z "$p2" ]] || [[ "$p2" != "x" ]] && [[ "$p2" != "o" ]]; then
-        echo -e "error: player ID cannot be empty or other than o/x!!"
+        echo -e "error: player ID should either be o/x!!"
         exit 1
       elif [[ "$p2" = 'o' ]]; then
         p1=x
@@ -260,7 +260,7 @@ play()
               fi
               break
             else
-              echo -e "warning: that spot is already taken or invalid!!"
+              echo -e "warning: that spot is not allowed!!"
             fi
           done
           board
@@ -278,7 +278,7 @@ play()
                 get_winner p2
               break
               else
-                echo -e "warning: that spot is already taken or invalid!!"
+                echo -e "warning: that spot is not allowed!!"
               fi
             done
             board
@@ -298,9 +298,9 @@ play()
 if [[ ${w1:-0} -eq ${w2:-0} ]]; then
   echo -e "\ninfo: ****The game is a tie.****\n"
 elif [[ ${w1} -gt ${w2} ]]; then
-  echo -e "\ninfo: ****player 1 has beaten player 2 by [${w1:-0}-${w2:-0}] in total $sets sets.****\n"
+  echo -e "\ninfo: ****player 1 won by [${w1:-0}-${w2:-0}] in $sets sets.****\n"
 else
-  echo -e "\ninfo: ****player 2 has beaten player 1 by [${w1:-0}-${w2:-0}] in total $sets sets..****\n"
+  echo -e "\ninfo: ****player 2 won by [${w1:-0}-${w2:-0}] in $sets sets..****\n"
 fi
 }
 
