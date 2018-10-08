@@ -36,7 +36,6 @@ d="-1 0 1 -2 -3"
 e="1 2 20 21 10 0 -10 -20 -23 -2 -1"
 f="1 2 3 35 30 20 22 10 0 -10 -20 -25 -30 -35 -3 -2 -1"
 g="1 4 6 9 10 15 20 25 30 -30 -24 -11 -10 -9 -8 -7"
-
 #
 # functions
 
@@ -87,6 +86,16 @@ plough()
   printf '\n\n'
 }
 
+get_free_fields()
+{
+  free_fields=0
+  for n in $(seq 1 ${#room[@]}); do
+    if [[ "${room[$n]}" = "." ]]; then
+      ((free_fields+=1))
+    fi
+  done
+}
+
 is_free_field()
 {
   local f=$1
@@ -112,7 +121,7 @@ get_mines()
   m=$(shuf -e a b c d e f g X -n 1)
   if [[ "$m" != "X" ]]; then
     for limit in ${!m}; do
-      field=$(shuf -i 0-3 -n 1)
+      field=$(shuf -i 0-5 -n 1)
       index=$((i+limit))
       is_free_field $index
     done
@@ -152,8 +161,13 @@ get_coordinates()
   else
     get_mines
     plough
+    get_free_fields
     if [[ "$m" = "X" ]]; then
-      printf '\n\n%s: %s %d\n\n' "GAMEOVER" "your score" "$score"
+      printf '\n\n\t%s: %s %d\n' "GAMEOVER" "you scored" "$score"
+      printf '\n\n\t%s\n\n' "You were just $free_fields mines away."
+      exit 0
+    elif [[ $free_fields -eq 0 ]]; then
+      printf '\n\n\t%s: %s %d\n\n' "You Win" "you scored" "$score"
       exit 0
     fi
   fi
