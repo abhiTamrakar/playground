@@ -180,10 +180,10 @@ _EOF_
 
 if [[ ${v1} -gt ${v2} ]]; then
   echo -e "\ninfo: ****player 1 won by [${w1:-0}-${w2:-0}] in $sets sets.****\n"
-  break 2
+  break
 elif [[ ${v1} -lt ${v2} ]]; then
   echo -e "\ninfo: ****player 2 won by [${w1:-0}-${w2:-0}] in $sets sets..****\n"
-  break 2
+  break
 fi
 }
 
