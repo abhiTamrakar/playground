@@ -101,10 +101,11 @@ get_free_fields()
 is_free_field()
 {
   local f=$1
+  local val=$2
   not_allowed=0
   if [[ "${room[$f]}" = "." ]]; then
-    room[$f]=$field
-    score=$((score+field))
+    room[$f]=$val
+    score=$((score+val))
   else
     not_allowed=1
   fi
@@ -125,7 +126,7 @@ get_mines()
     for limit in ${!m}; do
       field=$(shuf -i 0-5 -n 1)
       index=$((i+limit))
-      is_free_field $index
+      is_free_field $index $field
     done
   elif [[ "$m" = "X" ]]; then
     g=0
@@ -157,7 +158,7 @@ get_coordinates()
   esac
 
   i=$(((ro*10)+o))
-  is_free_field $i
+  is_free_field $i $(shuf -i 0-5 -n 1)
   if [[ $not_allowed -eq 1 ]] || [[ ! "$colm" =~ [a-j] ]]; then
     printf '\n%s: %s\n' "warning" "not allowed!!!!"
   else
