@@ -36,6 +36,9 @@ d="-1 0 1 -2 -3"
 e="1 2 20 21 10 0 -10 -20 -23 -2 -1"
 f="1 2 3 35 30 20 22 10 0 -10 -20 -25 -30 -35 -3 -2 -1"
 g="1 4 6 9 10 15 20 25 30 -30 -24 -11 -10 -9 -8 -7"
+RED="\033[0;31m"
+GREEN="\033[0;32m"
+NC="\033[0m" # No Color
 #
 # declarations
 declare -a room
@@ -72,7 +75,7 @@ time_to_quit()
 plough()
 {
   r=0
-  printf '\n\n'
+  printf "\e[2J\e[H"
   printf '%s' "     a   b   c   d   e   f   g   h   i   j"
   printf '\n   %s\n' "-----------------------------------------"
   for row in $(seq 0 9); do
@@ -160,17 +163,17 @@ get_coordinates()
   i=$(((ro*10)+o))
   is_free_field $i $(shuf -i 0-5 -n 1)
   if [[ $not_allowed -eq 1 ]] || [[ ! "$colm" =~ [a-j] ]]; then
-    printf '\n%s: %s\n' "warning" "not allowed!!!!"
+    printf "$RED \n%s: %s\n$NC" "warning" "not allowed!!!!"
   else
     get_mines
     plough
     get_free_fields
     if [[ "$m" = "X" ]]; then
-      printf '\n\n\t%s: %s %d\n' "GAMEOVER" "you scored" "$score"
+      printf "\n\n\t $RED%s: $NC %s %d\n" "GAME OVER" "you scored" "$score"
       printf '\n\n\t%s\n\n' "You were just $free_fields mines away."
       exit 0
     elif [[ $free_fields -eq 0 ]]; then
-      printf '\n\n\t%s: %s %d\n\n' "You Win" "you scored" "$score"
+      printf "\n\n\t $GREEN%s: %s $NC %d\n\n' "You Win" "you scored" "$score
       exit 0
     fi
   fi
@@ -180,10 +183,14 @@ get_coordinates()
 
 trap time_to_quit INT
 
+printf "\e[2J\e[H"
 usage
+read -p "Type Enter to continue. And good luck!"
 plough
 
 while true; do
+  printf "Remember: to choose col- g, row- 5, give input - g5 \n\n"
   read -p "info: enter the coordinates: " opt
   get_coordinates
 done
+
