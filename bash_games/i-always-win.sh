@@ -24,7 +24,9 @@ min_selection=1
 p1=''
 p2=computer
 violations=0
-
+YELLOW="\e[33m"
+GREEN="\e[32m"
+NC="\e[0m"
 declare -a players=(p1 p2)
 declare -a users
 
@@ -43,21 +45,20 @@ check_player()
 #  echo -e "${#users[@]} registered. ${users[@]}"
 }
 
+printf "\e[2J\e[H"
 
-echo -e "\e[033m"
+echo -e "$YELLOW"
 cat<<_EOF_
 
 [PLEASE READ]
 
-This is a basic game, where each player has to select a random
-number between 1-5, not more than 5, in a single chance. Going 
-by every chance, the total ($total) will get deducted by the number
-a player will choose.The last person to pick the number will be
-the one to loose the game.
+This is a basic game, where each player has to select a random number between 1-5, not more than 5, in a single chance.
+Going by every chance, the total ($total) will get deducted by the number a player will choose.
+The last person to pick the number will be the one to lose the game.
 
 _EOF_
 
-echo -e "\e[0m"
+echo -e "$NC"
 
 read -p "your name: " p1
 
@@ -100,17 +101,17 @@ while [ $remaining -gt 0 ]; do
     fi
 
     if [[ $choice -le 5 ]] && [[ $choice -ne 0 ]]; then
-       echo -e "\e[033m[${user}]\e[0m selected $choice"
+       echo -e "$YELLOW[${user}]$NC selected $choice"
        dif=$choice
        ((remaining-=dif))
     else
-       echo -e "\e[031m[${user}]\e[0m selected $choice, has cheated by violating the game rules.\n"
-       echo -e "\n\n******\$\$\$\$\$\e[032m[${users[@]/${user}/}]\e[0m wins the game\$\$\$\$\$******\n\n"
+       echo -e "$YELLOW[${user}]$NC selected $choice, has cheated by violating the game rules.\n"
+       echo -e "\n\n******\$\$\$\$\$$GREEN[${users[@]/${user}/}]$NC wins the game\$\$\$\$\$******\n\n"
        exit 1
     fi
 
     if [ $remaining -le 0 ]; then
-       echo -e "\n\n******\$\$\$\$\$\e[032m[${users[@]/${user}/} ]\e[0m wins the game\$\$\$\$\$******\n\n"
+       echo -e "\n\n******\$\$\$\$\$$GREEN[${users[@]/${user}/} ]$NC wins the game\$\$\$\$\$******\n\n"
        exit 0
     fi
   done
