@@ -39,16 +39,12 @@ g="1 4 6 9 10 15 20 25 30 -30 -24 -11 -10 -9 -8 -7"
 RED="\033[0;31m"
 GREEN="\033[0;32m"
 NC="\033[0m" # No Color
-#
 # declarations
 declare -a room
 # functions
-
 usage()
 {
 cat <<_EOF_
-
-
   This game is made for fun, it has simple rules.
   * Do not cheat.
   * You can re-select an element if only it's -
@@ -65,13 +61,11 @@ cat <<_EOF_
 
 _EOF_
 }
-
 time_to_quit()
 {
   printf '\n\n%s\n\n' "info: Sadly! You opted to quit!!"
   exit 1
 }
-
 plough()
 {
   r=0
@@ -90,7 +84,6 @@ plough()
   done
   printf '\n\n'
 }
-
 get_free_fields()
 {
   free_fields=0
@@ -100,7 +93,6 @@ get_free_fields()
     fi
   done
 }
-
 is_free_field()
 {
   local f=$1
@@ -113,7 +105,6 @@ is_free_field()
     not_allowed=1
   fi
 }
-
 is_null_field()
 {
   local e=$1  
@@ -121,7 +112,6 @@ is_null_field()
       room[$r]="."
     fi
 }
-
 get_mines()
 {
   m=$(shuf -e a b c d e f g X -n 1)
@@ -142,7 +132,6 @@ get_mines()
     done
   fi
 }
-
 get_coordinates()
 {
   colm=${opt:0:1}
@@ -159,7 +148,6 @@ get_coordinates()
     i ) o=9;;
     j ) o=10;;
   esac
-
   i=$(((ro*10)+o))
   is_free_field $i $(shuf -i 0-5 -n 1)
   if [[ $not_allowed -eq 1 ]] || [[ ! "$colm" =~ [a-j] ]]; then
@@ -178,19 +166,14 @@ get_coordinates()
     fi
   fi
 }
-
 # main
-
 trap time_to_quit INT
-
 printf "\e[2J\e[H"
 usage
 read -p "Type Enter to continue. And good luck!"
 plough
-
 while true; do
   printf "Remember: to choose col- g, row- 5, give input - g5 \n\n"
   read -p "info: enter the coordinates: " opt
   get_coordinates
 done
-
