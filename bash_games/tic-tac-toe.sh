@@ -180,10 +180,12 @@ _EOF_
 
 if [[ ${v1} -gt ${v2} ]]; then
   echo -e "\ninfo: ****player 1 won by [${w1:-0}-${w2:-0}] in $sets sets.****\n"
-  break
+  return 0
 elif [[ ${v1} -lt ${v2} ]]; then
   echo -e "\ninfo: ****player 2 won by [${w1:-0}-${w2:-0}] in $sets sets..****\n"
-  break
+  return 0
+else
+  return 1
 fi
 }
 
@@ -273,7 +275,7 @@ play()
             fi
           done
           board
-          get_winner p1
+          get_winner p1 && { break; }
           u=1;;
       1 ) player=${users[1]}
           get_empty_sets
@@ -291,7 +293,7 @@ play()
               fi
             done
             board
-            get_winner p2
+            get_winner p2 && { break; }
           else
             # logic for computer move
             can_win $c
@@ -299,7 +301,7 @@ play()
             # is still not moved
             get_my_move
             board	# print board only once in a 1 player game.
-            get_winner c
+            get_winner c && { break; }
           fi
           u=0;;
     esac
