@@ -252,6 +252,7 @@ done
 
 play()
 {
+  clear
   local u=$r
   ((sets+=1))
   get_empty_sets
