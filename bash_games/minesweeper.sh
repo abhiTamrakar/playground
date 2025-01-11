@@ -98,12 +98,22 @@ is_free_field()
   local f=$1
   local val=$2
   not_allowed=0
-  if [[ "${room[$f]}" = "." ]]; then
-    room[$f]=$val
-    score=$((score+val))
-  else
-    not_allowed=1
-  fi
+  safevalue=0
+    if [[ "${room[$f]}" = "." ]]; then
+      for ele in $mines; do
+        if [[ $f -eq $ele ]]; then
+          safevalue=1
+          break
+        fi
+      done
+      if [[ $safevalue -eq 0 ]]; then
+        room[$f]=$val
+        score=$((score+val))
+      fi
+
+    else
+      not_allowed=1
+    fi
 }
 is_null_field()
 {
@@ -114,26 +124,42 @@ is_null_field()
 }
 get_mines()
 {
-  m=$(shuf -e a b c d e f g X -n 1)
-  if [[ "$m" != "X" ]]; then
-    for limit in ${!m}; do
-      field=$(shuf -i 0-5 -n 1)
-      index=$((i+limit))
-      is_free_field $index $field
+  for mine in $mines; do
+    if [[ $mine -eq $i ]]; then
+      gameover=1
+    fi
+  done
+
+  if [[ $gameover -eq 1 ]]; then
+    for mine in $mines; do
+      room[$mine]="X"
     done
-  elif [[ "$m" = "X" ]]; then
-    g=0
-    room[$i]=X
-    for j in {42..49}; do
-      out="gameover"
-      k=${out:$g:1}
-      room[$j]=${k^^}
-      ((g+=1)) 
-    done
+  else
+
+    m=$(shuf -e a b c d e f g -n 1)
+    if [[ "$m" != "X" ]]; then
+      for limit in ${!m}; do
+        field=$(shuf -i 0-5 -n 1)
+        index=$((i+limit))
+        is_free_field $index $field
+      done
+    elif [[ "$m" = "X" ]]; then
+      g=0
+      room[$i]=X
+      for j in {42..49}; do
+        out="gameover"
+        k=${out:$g:1}
+        room[$j]=${k^^}
+        ((g+=1)) 
+      done
+    fi
   fi
 }
 get_coordinates()
 {
+  clear
+
+  gameover=0
   colm=${opt:0:1}
   ro=${opt:1:1}
   case $colm in
@@ -149,14 +175,16 @@ get_coordinates()
     j ) o=10;;
   esac
   i=$(((ro*10)+o))
+  #echo "row=$i"
   is_free_field $i $(shuf -i 0-5 -n 1)
   if [[ $not_allowed -eq 1 ]] || [[ ! "$colm" =~ [a-j] ]]; then
-    printf "$RED \n%s: %s\n$NC" "warning" "not allowed!!!!"
+    plough
+    printf "$RED \n%s: %s\n$NC" "warning" "${opt} is not available!!!!"
   else
     get_mines
     plough
     get_free_fields
-    if [[ "$m" = "X" ]]; then
+    if [[ $gameover -eq 1 ]]; then
       printf "\n\n\t $RED%s: $NC %s %d\n" "GAME OVER" "you scored" "$score"
       printf '\n\n\t%s\n\n' "You were just $free_fields mines away."
       exit 0
@@ -172,8 +200,10 @@ printf "\e[2J\e[H"
 usage
 read -p "Type Enter to continue. And good luck!"
 plough
+mines=$(for x in {1..10} ; do [[ $x != 10 ]] && echo -n "$(($RANDOM%100)) " || echo -n $(($RANDOM%100)); done)
+#echo "mines=$mines"
 while true; do
   printf "Remember: to choose col- g, row- 5, give input - g5 \n\n"
-  read -p "info: enter the coordinates: " opt
+  read -p "info: [score=$score], enter the coordinates: " opt
   get_coordinates
 done
